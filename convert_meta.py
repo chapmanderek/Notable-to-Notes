@@ -64,12 +64,10 @@ def Tag_to_Path(metadata, dest_path):
 	return folder_path
 
 def Create_Folder(metadata):
-	# check if folder already exists
-	# folder_path = destination_path + metadata['tags']
-
+	folder_path = metadata['folder path']
 	
-	# if os.path.exists(path)
-	pass
+	if not os.path.exists(folder_path):
+		os.makedirs(folder_path)
 
 def Write_Document(document, metadata):
 	if destination_path[-1] == '/':
@@ -104,6 +102,7 @@ if not doc_metadata['deleted']:
 	document = Remove_Empty_Beginning(document)
 	document = Set_Doc_Title(document, doc_metadata)
 	doc_metadata['folder path'] = Tag_to_Path(doc_metadata, destination_path)
+	Create_Folder(doc_metadata)
 	# Write_Document(document, doc_metadata)
 
 # print(document)
