@@ -60,35 +60,29 @@ def Set_Doc_Title(document, metadata):
         return document
 
 
-def Tag_to_Path(metadata, dest_path):
+def Tag_to_Folder_Path(metadata, destination_path):
     doc_tag = metadata['tag']
 
     # remove the Notebook part of the tag if present as being superfulous
     doc_tag = doc_tag.replace('Notebooks/', '')
 
     # make sure the destination path ends with a forward slash
-    if dest_path[-1] != '/':
-        dest_path = dest_path + '/'
+    if destination_path[-1] != '/':
+        destination_path = destination_path + '/'
 
-    # combine the destination path and the tag into a complete path
-    folder_path = dest_path + doc_tag + '/'
+    # combine the destination path and the tag into a complete folder path
+    metadata['folder path'] = os.path.join(destination_path, doc_tag)
 
-    return folder_path
+    return metadata
 
 
 def Create_Folder(metadata):
-    folder_path = metadata['folder path']
-
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
+    if not os.path.exists(metadata['folder path']):
+        os.makedirs(metadata['folder path'])
 
 
 def Write_Document(document, metadata):
-    if destination_path[-1] == '/':
-        doc_path = destination_path + metadata['title'] + '.md'
-    else:
-        doc_path = destination_path + '/' + metadata['title'] + '.md'
-
+    doc_path = metadata['folder path'] + '/' + metadata['title'] + '.md'
     with open(doc_path, 'w') as doc_path_handle:
         for line in document:
             doc_path_handle.write(line)
@@ -117,18 +111,18 @@ def Remove_Empty_Beginning(document):
 
 
 document = Read_File(path_to_test_file)
-doc_metadata = Parse_Metadata(document)
+metadata = Parse_Metadata(document)
 
-if not doc_metadata['deleted']:
+if not metadata['deleted']:
     document = Remove_Metadata(document)
     document = Remove_Empty_Beginning(document)
-    document = Set_Doc_Title(document, doc_metadata)
-    doc_metadata['folder path'] = Tag_to_Path(doc_metadata, destination_path)
-    Create_Folder(doc_metadata)
-    # Write_Document(document, doc_metadata)
+    document = Set_Doc_Title(document, metadata)
+    metadata = Tag_to_Folder_Path(metadata, destination_path)
+    Create_Folder(metadata)
+    Write_Document(document, metadata)
 
 # print(document)
-for key in doc_metadata:
-    print('{k} : {v}'.format(k=key, v=doc_metadata[key]))
+for key in metadata:
+    print('{k} : {v}'.format(k=key, v=metadata[key]))
 
-# print(doc_metadata)
+# print(metadata)
