@@ -18,18 +18,33 @@ def Read_File(file_path):
     return document
 
 
+def Split_meta_line(line):
+    if ',' not in line:
+        return line.split()
+
+    # if there are multiple tags (hence the comma) attempt to grab the first tag and handle correclty tags with spaces in the name
+    if ',' in line:
+        line = line.split(',')
+        line = line[0].split()
+        main_tag = '_'.join(line[1:len(line)])
+        line = [line[0]]
+        line.append(main_tag)
+        print(line)
+        return line
+
+
 def Parse_Metadata(document):
     metadata = {}
     metadata['deleted'] = False
 
-    # check if there is even a header from notable,
+    # check if there is a header from notable,
     # assumes the first char of the first line will be a dash
     if document[0][0] != '-':
         return metadata
 
     # if there is metadata then get and organize it
     for idx, line in enumerate(document):
-        split_line = line.split()
+        split_line = Split_meta_line(line)
         if len(split_line) < 1:
             pass
         elif split_line[0] == 'tags:':
