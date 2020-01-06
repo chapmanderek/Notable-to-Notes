@@ -110,19 +110,31 @@ def Remove_Empty_Beginning(document):
             return document[idx:]
 
 
+def Remove_Empty_Ending(document):
+    document.reverse()
+    for idx, line in enumerate(document):
+        if line == '\n' or line == '':
+            pass
+        else:
+            document = document[idx:]
+            document.reverse()
+            return document
+
+
 document = Read_File(path_to_test_file)
 metadata = Parse_Metadata(document)
 
 if not metadata['deleted']:
     document = Remove_Metadata(document)
     document = Remove_Empty_Beginning(document)
+    document = Remove_Empty_Ending(document)
     document = Set_Doc_Title(document, metadata)
     metadata = Tag_to_Folder_Path(metadata, destination_path)
     Create_Folder(metadata)
     Write_Document(document, metadata)
 
 # print(document)
-for key in metadata:
-    print('{k} : {v}'.format(k=key, v=metadata[key]))
+# for key in metadata:
+#     print('{k} : {v}'.format(k=key, v=metadata[key]))
 
 # print(metadata)
