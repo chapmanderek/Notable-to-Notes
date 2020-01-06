@@ -20,7 +20,12 @@ def Read_File(file_path):
 
 def Split_meta_line(line):
     if ',' not in line:
-        return line.split()
+        line = line.split()
+        if len(line) > 2:
+            main = ' '.join(line[1:len(line)])
+            line = [line[0]]
+            line.append(main)
+        return line
 
     # if there are multiple tags (hence the comma) attempt to grab the first tag and handle correclty tags with spaces in the name
     if ',' in line:
@@ -97,7 +102,13 @@ def Create_Folder(metadata):
 
 
 def Write_Document(document, metadata):
-    doc_path = metadata['folder path'] + '/' + metadata['title'] + '.md'
+    title = metadata['title']
+
+    if ' ' in title:
+        title = title.split()
+        title = '_'.join(title)
+
+    doc_path = metadata['folder path'] + '/' + title + '.md'
     with open(doc_path, 'w') as doc_path_handle:
         for line in document:
             doc_path_handle.write(line)
