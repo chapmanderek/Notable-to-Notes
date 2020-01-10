@@ -1,4 +1,4 @@
-# convert meta data from Notable into a folder structure for typora
+# convert meta data from Notable into a folder structure for typora (similar other markdown program)
 # move images and relink
 
 import os
@@ -7,7 +7,7 @@ import sys
 path_to_test_file = "./test_folder/Kegging.md"
 notes_path = '.'
 destination_path = './converted_notes/'
-overwrite_files = True
+# overwrite_files = True   does nothing yet
 
 
 def Read_File(file_path):
@@ -18,24 +18,31 @@ def Read_File(file_path):
     return document
 
 
-def Split_meta_line(line):
-    if ',' not in line:
-        line = line.split()
-        if len(line) > 2:
-            main = ' '.join(line[1:len(line)])
-            line = [line[0]]
-            line.append(main)
-        return line
-
-    # if there are multiple tags (hence the comma) attempt to grab the first tag and handle correclty tags with spaces in the name
+def Tag_meta_line(line):
+    # tags: [stuff to keep, otherthings]
+    # if there are multiple tags (hence the comma) attempt to grab the first tag and correctly handle tags with spaces in the name
     if ',' in line:
         line = line.split(',')
         line = line[0].split()
-        main_tag = '_'.join(line[1:len(line)])
-        line = [line[0]]
-        line.append(main_tag)
-        print(line)
-        return line
+        main_tag = '_'.join(line[1:len(line)]) #drop the tags: part and join the rest of the main tag into a valid folder name (no spaces)
+    elif ',' not in line:
+        line = line.split()
+        main_tag = line[1]
+
+    main_tag = main_tag.replace('[', '') \
+                    .replace(']', '') \
+                    .replace(',', '')
+    return main_tag
+
+
+def Title_meta_line(line):
+    line = line.split()
+    # correctly handle titles with spaces in the name
+    if len(line) > 2:
+        title = ' '.join(line[1:len(line)])
+        return title
+    elif len(line) == 2:
+        return line[1]
 
 
 def Parse_Metadata(document):
@@ -45,25 +52,23 @@ def Parse_Metadata(document):
     # check if there is a header from notable,
     # assumes the first char of the first line will be a dash
     if document[0][0] != '-':
-        return metadata
+        return False
 
     # if there is metadata then get and organize it
     for idx, line in enumerate(document):
-        split_line = Split_meta_line(line)
+        # split_line = Split_meta_line(line)
+        split_line = line.split()
+
         if len(split_line) < 1:
             pass
         elif split_line[0] == 'tags:':
-            metadata['tag'] = (
-                split_line[1].replace('[', '')
-                             .replace(']', '')
-                             .replace(',', '')
-            )
+            metadata['tag'] = Tag_meta_line(line)
         elif split_line[0] == 'title:':
-            metadata['title'] = split_line[1]
+            metadata['title'] = Title_meta_line(line)
         elif split_line[0] == 'deleted:':
             metadata['deleted'] = True
         elif split_line[0] == 'attachments:':
-            pass
+            metadata['attachments'] = True
         elif idx > 1 and split_line[0] == '---':
             return metadata
 
@@ -162,5 +167,3 @@ if not metadata['deleted']:
 # print(document)
 # for key in metadata:
 #     print('{k} : {v}'.format(k=key, v=metadata[key]))
-
-# print(metadata)
