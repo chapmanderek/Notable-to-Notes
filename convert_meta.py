@@ -3,9 +3,11 @@
 
 import os
 import sys
+import shutil
 
 path_to_test_file = "./test_folder/Kegging.md"
-notes_path = '.'
+notes_path = './test_folder/'
+attachments_path = './attachments/'
 destination_path = './converted_notes/'
 # overwrite_files = True   does nothing yet
 
@@ -48,6 +50,7 @@ def Title_meta_line(line):
 def Parse_Metadata(document):
     metadata = {}
     metadata['deleted'] = False
+    metadata['attachments'] = False
 
     # check if there is a header from notable,
     # assumes the first char of the first line will be a dash
@@ -101,9 +104,9 @@ def Tag_to_Folder_Path(metadata, destination_path):
     return metadata
 
 
-def Create_Folder(metadata):
-    if not os.path.exists(metadata['folder path']):
-        os.makedirs(metadata['folder path'])
+def Create_Folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
 
 
 def Write_Document(document, metadata):
@@ -152,16 +155,59 @@ def Remove_Empty_Ending(document):
             return document
 
 
+def Update_attachments(document, metadata, attachments_path):
+    # (@attachment/subdirectory/rewiriting.png) -> '../attachments/reriting.png'
+    # (./folderpath/images)
+    updated_document = []
+    for idx, line in enumerate(document):
+        if '@attachment' in line:
+            starting_pos = line.find('/')
+            ending_pos = line.find(')')
+            image_name = line[(starting_pos+1):ending_pos]
+            image_path = attachments_path + image_name
+            dst_path = Move_attachment(image_name, image_path, metadata)
+
+            image_caption = line[1:line.find(']')]
+            image_rel_path = 'images/' + image_name
+            updated_line =  '![{ic}]({dp})\n'.format(
+                    ic=image_caption, 
+                    dp=image_rel_path) 
+            updated_document.append(updated_line)
+        else:
+            updated_document.append(line)
+    return updated_document
+
+
+def Move_attachment(image_name, image_path, metadata):
+    src = image_path
+    dst = metadata['folder path'] + '/images/'
+    print('source: {}'.format(src))
+    print('destination: {}'.format(dst))
+    Create_Folder(dst)
+    return shutil.copy(src, dst)
+
+
 document = Read_File(path_to_test_file)
 metadata = Parse_Metadata(document)
+if metadata == False:
+    print('no metadata found')
+    sys.exit(1)
 
 if not metadata['deleted']:
+    print('Removing Metadata')
     document = Remove_Metadata(document)
+    print('Removing blank spaces')
     document = Remove_Empty_Beginning(document)
     document = Remove_Empty_Ending(document)
+    print('Setting document title')
     document = Set_Doc_Title(document, metadata)
     metadata = Tag_to_Folder_Path(metadata, destination_path)
-    Create_Folder(metadata)
+    print('Creating Folders')
+    Create_Folder(metadata['folder path'])
+    print('Moving-Updating attachments if present')
+    if metadata['attachments'] == True:
+        document = Update_attachments(document, metadata, attachments_path)
+    print('Writing Document')
     Write_Document(document, metadata)
 
 # print(document)
