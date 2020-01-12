@@ -156,8 +156,6 @@ def Remove_Empty_Ending(document):
 
 
 def Update_attachments(document, metadata, attachments_path):
-    # (@attachment/subdirectory/rewiriting.png) -> '../attachments/reriting.png'
-    # (./folderpath/images)
     updated_document = []
     for idx, line in enumerate(document):
         if '@attachment' in line:
@@ -181,8 +179,6 @@ def Update_attachments(document, metadata, attachments_path):
 def Move_attachment(image_name, image_path, metadata):
     src = image_path
     dst = metadata['folder path'] + '/images/'
-    print('source: {}'.format(src))
-    print('destination: {}'.format(dst))
     Create_Folder(dst)
     return shutil.copy(src, dst)
 
@@ -194,22 +190,13 @@ if metadata == False:
     sys.exit(1)
 
 if not metadata['deleted']:
-    print('Removing Metadata')
     document = Remove_Metadata(document)
-    print('Removing blank spaces')
     document = Remove_Empty_Beginning(document)
     document = Remove_Empty_Ending(document)
-    print('Setting document title')
     document = Set_Doc_Title(document, metadata)
     metadata = Tag_to_Folder_Path(metadata, destination_path)
-    print('Creating Folders')
     Create_Folder(metadata['folder path'])
-    print('Moving-Updating attachments if present')
     if metadata['attachments'] == True:
         document = Update_attachments(document, metadata, attachments_path)
-    print('Writing Document')
+    print('Writing document: %s' %metadata['title'])
     Write_Document(document, metadata)
-
-# print(document)
-# for key in metadata:
-#     print('{k} : {v}'.format(k=key, v=metadata[key]))
