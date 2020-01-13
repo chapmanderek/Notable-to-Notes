@@ -39,6 +39,7 @@ def Tag_meta_line(line):
 
 
 def Title_meta_line(line):
+    line = line.replace("'", "")
     line = line.split()
     # correctly handle titles with spaces in the name
     if len(line) > 2:
