@@ -14,6 +14,7 @@ destination_path = './converted_notes/'
 
 def Read_File(file_path):
     document = []
+    doc_line = 0
     with open(file_path) as fhandle:
         for line in fhandle:
             document.append(line)
@@ -99,7 +100,10 @@ def Tag_to_Folder_Path(metadata, destination_path):
         destination_path = destination_path + '/'
 
     # combine the destination path and the tag into a complete folder path
-    metadata['folder path'] = os.path.join(destination_path, doc_tag)
+    try:
+        metadata['folder path'] = os.path.join(destination_path, doc_tag)
+    except:
+        print("   ERROR --> there was a problem creating the folder path %s" %metadata['folder path'])
 
     return metadata
 
@@ -159,18 +163,21 @@ def Update_attachments(document, metadata, attachments_path):
     updated_document = []
     for idx, line in enumerate(document):
         if '@attachment' in line:
-            starting_pos = line.find('/')
+            starting_pos = line.find('/', line.find('@'))
             ending_pos = line.find(')')
             image_name = line[(starting_pos+1):ending_pos]
             image_path = attachments_path + image_name
             dst_path = Move_attachment(image_name, image_path, metadata)
 
-            image_caption = line[1:line.find(']')]
-            image_rel_path = 'images/' + image_name
-            updated_line =  '![{ic}]({dp})\n'.format(
-                    ic=image_caption, 
-                    dp=image_rel_path) 
-            updated_document.append(updated_line)
+            if dst_path == False:
+                print('  ERROR --> image not found: %s' %image_name)
+            else:
+                image_caption = line[1:line.find(']')]
+                image_rel_path = 'images/' + image_name
+                updated_line =  '![{ic}]({dp})\n'.format(
+                        ic=image_caption, 
+                        dp=image_rel_path) 
+                updated_document.append(updated_line)
         else:
             updated_document.append(line)
     return updated_document
@@ -179,14 +186,22 @@ def Update_attachments(document, metadata, attachments_path):
 def Move_attachment(image_name, image_path, metadata):
     src = image_path
     dst = metadata['folder path'] + '/images/'
-    Create_Folder(dst)
-    return shutil.copy(src, dst)
+    try:
+        Create_Folder(dst)
+        if os.path.exists(src):
+            return shutil.copy(src, dst)
+        else:
+            return False
+    except:
+        print("   ERROR --> creating file and copying image %s" %image_name)
+        return False
+    
 
 
 def Process_doc(doc_path):
     document = Read_File(doc_path)
     metadata = Parse_Metadata(document)
-    print('Attachments path: %s' %attachments_path)
+
     if metadata == False:
         return False
 
@@ -209,8 +224,16 @@ def Get_notes(notes_path):
     dirpath, dirnames, filenames = next(os.walk(notes_path))
     return filenames
 
+def Is_Valid_MD_File(filename):
+    if file[0] == '.' : return False
+    if file[-3:] != '.md' : return False
+    if file.find('/') != -1 : return False
+    if file.find('\\') != -1 : return False
+    return True
+
 filenames = Get_notes(notes_path)
 for file in filenames:
-    file_path = notes_path + file
-    Process_doc(file_path)
-
+    if Is_Valid_MD_File(file):
+        print('Working on doc: %s' %file)
+        file_path = notes_path + file
+        Process_doc(file_path)
