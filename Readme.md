@@ -1,4 +1,4 @@
-# Notable to 'Standard' MD Notes Structure (for Typora in my case)
+# Migrate Notable Metadata to 'Standard' MD Notes Structure
 ## Purpose
 Attempt to migrate the Notable metadata and attachment style into a more standard nested folder structure and image linking.
 
@@ -25,3 +25,5 @@ Leaves the old files in place and creates new files.
 If the deleted tag is present the file is skiped.
 
 For docs with multiple tags the first tag is taken as the folder path.
+
+Uses the title tag for the first line of the document as well as the name of the file.
