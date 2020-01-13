@@ -1,12 +1,12 @@
-# convert meta data from Notable into a folder structure for typora (similar other markdown program)
+# convert meta data from Notable into a folder structure for typora (or other similar markdown program that preferrs folder structure over tags and metadata)
 # move images and relink
 
 import os
 import sys
 import shutil
 
-path_to_test_file = "./test_folder/Kegging.md"
-notes_path = './test_folder/'
+# path_to_test_file = "./test_folder/Kegging.md"
+notes_path = './notes/'
 attachments_path = './attachments/'
 destination_path = './converted_notes/'
 # overwrite_files = True   does nothing yet
@@ -183,20 +183,34 @@ def Move_attachment(image_name, image_path, metadata):
     return shutil.copy(src, dst)
 
 
-document = Read_File(path_to_test_file)
-metadata = Parse_Metadata(document)
-if metadata == False:
-    print('no metadata found')
-    sys.exit(1)
+def Process_doc(doc_path):
+    document = Read_File(doc_path)
+    metadata = Parse_Metadata(document)
+    print('Attachments path: %s' %attachments_path)
+    if metadata == False:
+        return False
 
-if not metadata['deleted']:
-    document = Remove_Metadata(document)
-    document = Remove_Empty_Beginning(document)
-    document = Remove_Empty_Ending(document)
-    document = Set_Doc_Title(document, metadata)
-    metadata = Tag_to_Folder_Path(metadata, destination_path)
-    Create_Folder(metadata['folder path'])
-    if metadata['attachments'] == True:
-        document = Update_attachments(document, metadata, attachments_path)
-    print('Writing document: %s' %metadata['title'])
-    Write_Document(document, metadata)
+    if not metadata['deleted']:
+        document = Remove_Metadata(document)
+        document = Remove_Empty_Beginning(document)
+        document = Remove_Empty_Ending(document)
+        document = Set_Doc_Title(document, metadata)
+        metadata = Tag_to_Folder_Path(metadata, destination_path)
+        Create_Folder(metadata['folder path'])
+        if metadata['attachments'] == True:
+            document = Update_attachments(document, metadata, attachments_path)
+        print('Writing document: %s' %metadata['title'])
+        Write_Document(document, metadata)
+        return True
+
+
+def Get_notes(notes_path):
+    # get and return file names in the notes directory
+    dirpath, dirnames, filenames = next(os.walk(notes_path))
+    return filenames
+
+filenames = Get_notes(notes_path)
+for file in filenames:
+    file_path = notes_path + file
+    Process_doc(file_path)
+
