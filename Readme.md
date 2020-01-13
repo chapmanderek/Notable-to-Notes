@@ -1,19 +1,23 @@
-# Notable to Notes (or Typora in my case)
+# Notable to 'Standard' MD Notes Structure (for Typora in my case)
 ## Purpose
-Attempts to migrate the Notable metadata and attachment style into a more standard nested folder structure and image linking.
+Attempt to migrate the Notable metadata and attachment style into a more standard nested folder structure and image linking.
 
-Also attempts basic clean up by making the heading and title of the file matchup and removing leading whitespace from the top of the file.
+Also attempts basic clean up by making the heading and title of the file matchup and removing  whitespace from the top/bottom of the file.
 
 ## Usage
 This script should be run from the base of your Notable information location.
 
---Notable_Notes (#or whatever you called it#)
+--Notable_Notes (*or whatever you called it*)
     |
     | this script.py
     |
     |- notes/
     |
     |- attachments/
+    |
+    |- converted_notes/
+
+When finished all notes will be moved into a folder structure based on their main tag in converted_notes and all attached images into an images folder inside of each folder containing that note.
 
 ## Side Notes
 Leaves the old files in place and creates new files.
