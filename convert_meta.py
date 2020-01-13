@@ -52,6 +52,8 @@ def Parse_Metadata(document):
     metadata = {}
     metadata['deleted'] = False
     metadata['attachments'] = False
+    metadata['tag'] = ''
+    metadata['title'] = False
 
     # check if there is a header from notable,
     # assumes the first char of the first line will be a dash
@@ -80,6 +82,9 @@ def Parse_Metadata(document):
 
 
 def Set_Doc_Title(document, metadata):
+    if not metadata['title']:
+        return
+
     doc_title = '# ' + metadata['title'] + '\n'
 
     if document[0] == doc_title:
@@ -195,7 +200,6 @@ def Move_attachment(image_name, image_path, metadata):
     except:
         print("   ERROR --> creating file and copying image %s" %image_name)
         return False
-    
 
 
 def Process_doc(doc_path):
@@ -205,7 +209,7 @@ def Process_doc(doc_path):
     if metadata == False:
         return False
 
-    if not metadata['deleted']:
+    if not metadata['deleted'] or not metadata['title']:
         document = Remove_Metadata(document)
         document = Remove_Empty_Beginning(document)
         document = Remove_Empty_Ending(document)
@@ -214,9 +218,10 @@ def Process_doc(doc_path):
         Create_Folder(metadata['folder path'])
         if metadata['attachments'] == True:
             document = Update_attachments(document, metadata, attachments_path)
-        print('Writing document: %s' %metadata['title'])
         Write_Document(document, metadata)
         return True
+    else:
+        return False
 
 
 def Get_notes(notes_path):
@@ -232,8 +237,16 @@ def Is_Valid_MD_File(filename):
     return True
 
 filenames = Get_notes(notes_path)
+problem_files = []
 for file in filenames:
     if Is_Valid_MD_File(file):
         print('Working on doc: %s' %file)
         file_path = notes_path + file
-        Process_doc(file_path)
+        if not Process_doc(file_path):
+            problem_files.append(file)
+    else:
+        problem_files.append(file)
+
+print("\n\n-----------------------------\n There was a problem processing the following files, they were not moved to the destination folder:")
+for problem in problem_files:
+    print(problem)
